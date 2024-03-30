@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Documento {
+  id             Int      @id @default(autoincrement())
+  nmoDocumento   String   @db.VarChar(10)
+  titulo         String   @db.VarChar(40)
+  descDocumento  String   @db.VarChar(255)
+  dataDocumento  DateTime @default(now())
+  pathArquivoPDF String
+
+  documento_id TramitacaoDocumento[]
+
+  TipoDocumento   TipoDocumento? @relation(fields: [tipoDocumentoId], references: [id])
+  tipoDocumentoId Int?
+}
+
+model TipoDocumento {
+  id                Int    @id @default(autoincrement())
+  DescTipoDocumento String @db.VarChar(30)
+
+  documento Documento[]
+}
+
+model Setor {
+  id         Int    @id @default(autoincrement())
+  SiglaSetor String @db.VarChar(10)
+  DescSetor  String @db.VarChar(60)
+
+  setor_envio_id  TramitacaoDocumento[] @relation("setor_envio_ID")
+  setor_recebe_id TramitacaoDocumento[] @relation("setor_recebe_id")
+}
+
+model TramitacaoDocumento {
+  id               Int       @id @default(autoincrement())
+  DataHoraEnvio    DateTime  @default(now())
+  DataHoraRecebido DateTime?
+
+  Documento   Documento? @relation(fields: [documentoId], references: [id])
+  documentoId Int?
+
+  setor_envio_id  Setor @relation("setor_envio_ID", fields: [setorEnvioId], references: [id])
+  setorEnvioId    Int
+  setor_recebe_id Setor @relation("setor_recebe_id", fields: [setorRecebeId], references: [id])
+  setorRecebeId   Int
+}
